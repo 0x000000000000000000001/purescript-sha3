@@ -13,6 +13,9 @@ import Prelude
 import Data.Int.Bits (complement, shl, xor, zshr, (.&.), (.|.))
 import Wasm.Array (unsafeIndex, unsafeNew, unsafeSet) as WA
 
+import Data.Array as Array
+import Data.Maybe (fromMaybe)
+
 -- A 50-element MUTABLE wasm array. Lane (x,y) at 2*(x+5y) (lo) and +1 (hi).
 -- Each Int is an i32; nothing masks. `setLo`/`setHi`/`clearState` mutate in
 -- place and return the same buffer, threaded by the caller.
@@ -63,8 +66,16 @@ rotlHi lo hi n
 hb :: Int
 hb = shl 1 31
 
+
+initArray :: Array Int -> Array Int
+initArray srcArr =
+  let len = Array.length srcArr
+      out = WA.unsafeNew len
+      go' i = if i < len then let _ = WA.unsafeSet out i (fromMaybe 0 (Array.index srcArr i)) in go' (i + 1) else out
+  in go' 0
+
 rcLo :: Array Int
-rcLo =
+rcLo = initArray
   [ 1, 0x8082, 0x808A, hb .|. 0x8000, 0x808B, hb .|. 0x1
   , hb .|. 0x8081, 0x8009, 0x8A, 0x88, hb .|. 0x8009, hb .|. 0xA
   , hb .|. 0x808B, 0x8B, 0x8089, 0x8003, 0x8002, 0x80
@@ -72,13 +83,13 @@ rcLo =
   ]
 
 rcHi :: Array Int
-rcHi =
+rcHi = initArray
   [ 0, 0, hb, hb, 0, 0, hb, hb, 0, 0, 0, 0
   , 0, hb, hb, hb, hb, hb, 0, hb, hb, hb, 0, hb
   ]
 
 rhoOffsets :: Array Int
-rhoOffsets =
+rhoOffsets = initArray
   [ 0, 1, 62, 28, 27
   , 36, 44, 6, 55, 20
   , 3, 10, 43, 25, 39
@@ -99,8 +110,8 @@ columnLo a x = getLo a x 0 `xor` getLo a x 1 `xor` getLo a x 2 `xor` getLo a x 3
 columnHi :: State -> Int -> Int
 columnHi a x = getHi a x 0 `xor` getHi a x 1 `xor` getHi a x 2 `xor` getHi a x 3 `xor` getHi a x 4
 
-theta :: State -> State
-theta a = applyD a (computeD a (WA.unsafeNew 10) 0) 0
+theta :: State -> State -> State
+theta thetaScratch a = applyD a (computeD a thetaScratch 0) 0
 
 computeD :: State -> State -> Int -> State
 computeD a d x
@@ -176,11 +187,11 @@ iota r a =
   in
     WA.unsafeSet a1 1 (WA.unsafeIndex a1 1 `xor` WA.unsafeIndex rcHi r)
 
-keccakRound :: State -> Int -> State -> State
-keccakRound scratch r a =
+keccakRound :: State -> State -> Int -> State -> State
+keccakRound thetaScratch rhoPiScratch r a =
   let
-    a1 = theta a
-    b1 = rhoPi a1 scratch
+    a1 = theta thetaScratch a
+    b1 = rhoPi a1 rhoPiScratch
     a2 = chi b1 a1
   in
     iota r a2
@@ -189,8 +200,8 @@ keccakRound scratch r a =
 -- a DISTINCT unsafeNew site from the caller's state buffer (the probe confirms
 -- those don't merge), so `a` and `scratch` are always different memory.
 keccakF :: State -> State
-keccakF a = go 0 a (WA.unsafeNew 50)
+keccakF a = go 0 a (WA.unsafeNew 10) (WA.unsafeNew 50)
   where
-  go r st scratch
-    | r < 24 = go (r + 1) (keccakRound scratch r st) scratch
+  go r st thetaScratch rhoPiScratch
+    | r < 24 = go (r + 1) (keccakRound thetaScratch rhoPiScratch r st) thetaScratch rhoPiScratch
     | otherwise = st

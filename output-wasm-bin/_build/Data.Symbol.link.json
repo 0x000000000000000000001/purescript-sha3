@@ -1,0 +1,1 @@
+{"cafInitExport":null,"foreignModules":[],"crossModuleExports":["Data.Symbol.reflectSymbol","Data.Symbol.reifySymbol"],"bindingRefs":{"Data.Symbol.IsSymbol$Dict":[],"Data.Symbol.reifySymbol":["Data.Symbol.unsafeCoerce","Type.Proxy.Proxy"],"Data.Symbol.reflectSymbol":[]}}

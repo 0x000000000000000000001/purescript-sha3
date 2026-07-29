@@ -1,4 +1,4 @@
-import { exports } from "./output-bench/index.mjs";
+import { exports } from "./output-wasm/index.mjs";
 import { performance } from "node:perf_hooks";
 
 // Warm up so V8 tiers up the wasm before any measurement.

@@ -1,0 +1,1 @@
+{"cafInitExport":"caf_init$Control.Category","foreignModules":[],"crossModuleExports":["Control.Category.categoryFn","Control.Category.identity","caf_init$Control.Category"],"bindingRefs":{"Control.Category.Category$Dict":[],"Control.Category.identity":[],"Control.Category.categoryFn":["Control.Semigroupoid.semigroupoidFn"]}}

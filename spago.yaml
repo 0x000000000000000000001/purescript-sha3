@@ -18,9 +18,9 @@ workspace:
   packageSet:
     registry: 77.4.0
   backend:
-      cmd: purs-wasm
-      args: ["build", "-p", "node", "-E", "-e", "Main"]
+      cmd: node
+      args: ["/Users/0x1/Documents/htdocs/purescript-backend-wasm/purs-wasm/index.js", "build", "-p", "node", "-E", "-e", "Main"]
   extraPackages:
     wasm-base:
       git: "https://github.com/purs-wasm/purescript-wasm-base.git"
-      ref: "v0.1.1"
+      ref: "v0.2.0"

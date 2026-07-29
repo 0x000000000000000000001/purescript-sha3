@@ -31,7 +31,7 @@ main = do
   check "SHA3-512(\"abc\")" (toHex (sha3_512 (fromUtf8 "abc")))
     "b751850b1a57168a5693cd924b6b096e08f621827444f70d884f5d0240d2712e10e116e9192af3c91a7ec57647e3934057340b4cf408d5a56592f8274eec53f0"
   where
-  check label got want =
+  check label got want = log ("Checking " <> label) *> 
     log (label <> ": " <> (if got == want then "OK" else "FAIL\n  got=" <> got))
 
 -- An n-byte input, every byte = v, built directly in a wasm byte buffer.

@@ -13,4 +13,4 @@ generated-docs/
 output-wasm-lib/
 output-wasm/
 output-bench/
-output-probe/
+output-probe/.psc-ide-port
